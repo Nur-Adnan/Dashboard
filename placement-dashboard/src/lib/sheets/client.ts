@@ -8,8 +8,7 @@ async function getSheetsClient(): Promise<sheets_v4.Sheets> {
       credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '{}'),
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
-    const authClient = await auth.getClient();
-    sheetsClient = google.sheets({ version: 'v4', auth: authClient as any });
+    sheetsClient = google.sheets({ version: 'v4', auth });
   }
   return sheetsClient;
 }

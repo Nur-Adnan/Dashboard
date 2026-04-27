@@ -1,3 +1,12 @@
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import * as dotenv from 'dotenv';
+
+// Load .env.local since ts-node doesn't auto-load it like Next.js
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '..', '.env.local') });
+
 import { google } from 'googleapis';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,8 +33,7 @@ async function setupSheets() {
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
-  const authClient = await auth.getClient();
-  const sheets = google.sheets({ version: 'v4', auth: authClient });
+  const sheets = google.sheets({ version: 'v4', auth });
 
   console.log('Checking spreadsheet...\n');
 
