@@ -10,12 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
-const stageColors: Record<string, string> = {
-  learning: 'bg-slate-100 text-slate-700',
-  applying: 'bg-blue-100 text-blue-700',
-  interviewing: 'bg-amber-100 text-amber-700',
-  offer_pending: 'bg-orange-100 text-orange-700',
-  placed: 'bg-emerald-100 text-emerald-700',
+const getStageBadgeProps = (stage: string): { variant: "default" | "secondary" | "destructive" | "outline", className?: string } => {
+  switch (stage) {
+    case 'learning': return { variant: 'outline' };
+    case 'applying': return { variant: 'secondary' };
+    case 'interviewing': return { variant: 'default' };
+    case 'offer_pending': return { variant: 'default' };
+    case 'placed': return { variant: 'outline', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' };
+    default: return { variant: 'outline' };
+  }
 };
 
 interface StudentDetailDialogProps {
@@ -72,13 +75,13 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Stage</p>
-              <Badge className={`mt-1 ${stageColors[student.stage]}`} variant="secondary">
+              <Badge className="mt-1" {...getStageBadgeProps(student.stage)}>
                 {student.stage.replace('_', ' ')}
               </Badge>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Risk Status</p>
-              <Badge variant={student.risk_status === 'at_risk' ? 'destructive' : 'default'} className="mt-1">
+              <Badge variant={student.risk_status === 'at_risk' ? 'destructive' : 'outline'} className="mt-1">
                 {student.risk_status === 'at_risk' ? 'At Risk' : 'Safe'}
               </Badge>
             </div>
@@ -97,7 +100,7 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Created</p>
               <p className="text-sm">{format(new Date(student.created_at), 'PPpp')}</p>
@@ -108,7 +111,7 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-4 border-t">
+          <div className="flex items-center gap-2 pt-4 border-t border-border/50">
             <Select value={newStage} onValueChange={(v) => setNewStage(v as StudentStage)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Change Stage" />

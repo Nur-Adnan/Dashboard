@@ -4,23 +4,11 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Student } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface KanbanCardProps {
   student: Student;
-}
-
-function getAvatarColor(name: string): string {
-  const colors = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-    'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
-    'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
-    'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500',
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
 }
 
 export function KanbanCard({ student }: KanbanCardProps) {
@@ -39,18 +27,20 @@ export function KanbanCard({ student }: KanbanCardProps) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card className="cursor-grab hover:shadow-md transition-shadow mb-2">
+      <Card className="cursor-grab hover:shadow-md transition-all duration-200 mb-2 border-border/50">
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${getAvatarColor(student.name)}`}>
-              {initials}
-            </div>
+            <Avatar className="w-8 h-8 shadow-sm">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{student.name}</p>
+              <p className="font-medium text-sm text-foreground truncate">{student.name}</p>
               <p className="text-xs text-muted-foreground">{student.batch}</p>
-              <span className="inline-block mt-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+              <Badge variant="secondary" className="mt-1.5 text-[10px] font-normal shadow-none">
                 {daysInStage} days in stage
-              </span>
+              </Badge>
             </div>
           </div>
         </CardContent>

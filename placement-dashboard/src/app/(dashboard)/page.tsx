@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllStudents, filterStudents } from '@/lib/sheets/students';
 import { getUpdatesByDate } from '@/lib/sheets/updates';
+import { getUserFromHeaders } from '@/lib/auth/helpers';
+import { headers } from 'next/headers';
 
 async function getDashboardData() {
   const [allStudents, atRiskStudents, updatesToday] = await Promise.all([
@@ -34,10 +36,21 @@ async function getDashboardData() {
 
 async function DashboardContent() {
   const data = await getDashboardData();
+  const headersList = await headers();
+  const user = getUserFromHeaders(headersList);
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="space-y-8 animate-in fade-in duration-500 slide-in-from-bottom-4">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-heading font-bold text-foreground">
+          Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
+        </h1>
+        <p className="text-muted-foreground">
+          Here's what's happening with your students today.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         <StatsCard
           title="Total Students"
           value={data.studentsCount}
@@ -77,10 +90,10 @@ async function DashboardContent() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>At-Risk Students</CardTitle>
-            <Link href="/students?risk_status=at_risk" className="text-sm text-indigo-600 hover:underline">
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-heading">At-Risk Students</CardTitle>
+            <Link href="/students?risk_status=at_risk" className="text-sm font-medium text-primary hover:underline hover:text-primary/80 transition-colors">
               View All
             </Link>
           </CardHeader>
@@ -89,9 +102,9 @@ async function DashboardContent() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Placement Funnel</CardTitle>
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-heading">Placement Funnel</CardTitle>
           </CardHeader>
           <CardContent>
             <PlacementFunnel stats={data.placementStats} />
@@ -104,10 +117,14 @@ async function DashboardContent() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-5 w-96" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i}>
+          <Card key={i} className="shadow-sm border-border/50">
             <CardContent className="pt-6">
               <Skeleton className="h-4 w-24 mb-2" />
               <Skeleton className="h-8 w-16" />
@@ -116,13 +133,13 @@ function DashboardSkeleton() {
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="shadow-sm border-border/50">
           <CardHeader><Skeleton className="h-6 w-40" /></CardHeader>
-          <CardContent><Skeleton className="h-64 w-full" /></CardContent>
+          <CardContent><Skeleton className="h-[300px] w-full" /></CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm border-border/50">
           <CardHeader><Skeleton className="h-6 w-40" /></CardHeader>
-          <CardContent><Skeleton className="h-64 w-full" /></CardContent>
+          <CardContent><Skeleton className="h-[300px] w-full" /></CardContent>
         </Card>
       </div>
     </div>
@@ -131,7 +148,7 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="min-h-full">
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />
       </Suspense>

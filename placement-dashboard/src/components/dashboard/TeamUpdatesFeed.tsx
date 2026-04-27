@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface TeamUpdatesFeedProps {
   updates: TeamUpdate[];
@@ -31,33 +32,30 @@ export function TeamUpdatesFeed({ updates, blockers, missingMembers = [] }: Team
   return (
     <div className="space-y-6">
       {blockers.length > 0 && (
-        <Card className="bg-amber-50 border-amber-200">
-          <CardHeader className="py-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-amber-800">
-              <AlertTriangle className="w-4 h-4" />
-              Blockers ({blockers.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="py-2">
-            <ul className="space-y-1">
+        <Alert variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 [&>svg]:text-destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Blockers ({blockers.length})</AlertTitle>
+          <AlertDescription>
+            <ul className="space-y-1 mt-2">
               {blockers.map((blocker, i) => (
-                <li key={i} className="text-sm text-amber-700 flex items-start gap-2">
-                  <span className="text-amber-500">•</span>
+                <li key={i} className="flex items-start gap-2">
+                  <span>•</span>
                   {blocker}
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
+          </AlertDescription>
+        </Alert>
       )}
 
       {blockers.length === 0 && (
-        <Card className="bg-emerald-50 border-emerald-200">
-          <CardContent className="py-4 flex items-center gap-2 text-emerald-700">
-            <PartyPopper className="w-5 h-5" />
-            <span className="font-medium">No blockers today 🎉</span>
-          </CardContent>
-        </Card>
+        <Alert className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 [&>svg]:text-emerald-700">
+          <PartyPopper className="h-4 w-4" />
+          <AlertTitle>All clear!</AlertTitle>
+          <AlertDescription>
+            No blockers reported today.
+          </AlertDescription>
+        </Alert>
       )}
 
       {missingMembers.length > 0 && (

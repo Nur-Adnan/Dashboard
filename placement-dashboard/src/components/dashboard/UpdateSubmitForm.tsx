@@ -158,7 +158,7 @@ export function UpdateSubmitForm({ onSubmitted }: UpdateSubmitFormProps) {
             {errors.blockers && <p className="text-xs text-red-500">{errors.blockers.message}</p>}
           </div>
 
-          <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700" disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Submit Update
           </Button>
