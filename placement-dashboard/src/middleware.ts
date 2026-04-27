@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAuthRoute = pathname === '/login';
-  const isApiAuthRoute = pathname.startsWith('/api/auth/');
+  const isApiAuthRoute = pathname === '/api/auth/login' || pathname === '/api/auth/logout' || pathname === '/api/auth/refresh';
   const isCronRoute = pathname.startsWith('/api/cron/');
   const isApiRoute = pathname.startsWith('/api/');
 
@@ -21,16 +21,21 @@ export function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get('access_token')?.value || request.headers.get('authorization')?.replace('Bearer ', '');
+  
+  console.log('Middleware Path:', pathname, 'Token Present:', !!token);
+  console.log('Secret Presence:', !!process.env.JWT_ACCESS_SECRET);
 
   if (!token) {
     if (isApiRoute) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
+    console.log('Redirecting to /login: No token');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   try {
-    const payload = verifyAccessToken(token);
+    const payload = await verifyAccessToken(token);
+    console.log('Token Verified:', payload.email);
     
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-user-id', payload.id);
@@ -44,6 +49,7 @@ export function middleware(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error('Token Verification Failed:', error instanceof Error ? error.message : 'Unknown error');
     if (isApiRoute) {
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
@@ -53,6 +59,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!login|api/auth|cron|_next/static|_next/image|favicon.ico).*)',
+    '/((?!login|api/auth/login|api/auth/logout|api/auth/refresh|cron|_next/static|_next/image|favicon.ico).*)',
   ],
 };

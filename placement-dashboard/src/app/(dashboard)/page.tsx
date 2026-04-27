@@ -6,103 +6,71 @@ import { RiskTable } from '@/components/dashboard/RiskTable';
 import { PlacementFunnel } from '@/components/dashboard/PlacementFunnel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getAllStudents, filterStudents } from '@/lib/sheets/students';
+import { getUpdatesByDate } from '@/lib/sheets/updates';
 
-async function getStudentsData() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/students?limit=1`, { 
-      cache: 'no-store' 
-    });
-    if (!res.ok) return { total: 0 };
-    const data = await res.json();
-    return { total: data.total || 0 };
-  } catch {
-    return { total: 0 };
-  }
-}
+async function getDashboardData() {
+  const [allStudents, atRiskStudents, updatesToday] = await Promise.all([
+    getAllStudents(),
+    filterStudents({ risk_status: 'at_risk' }),
+    getUpdatesByDate(new Date().toISOString().split('T')[0])
+  ]);
 
-async function getRiskData() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/risk`, { 
-      cache: 'no-store' 
-    });
-    if (!res.ok) return { total: 0 };
-    const data = await res.json();
-    return { total: data.total || 0, students: data.data || [] };
-  } catch {
-    return { total: 0, students: [] };
-  }
-}
+  const placementStats = allStudents.reduce((acc, student) => {
+    if (student.stage === 'interviewing') acc.interviewing++;
+    if (student.stage === 'offer_pending') acc.offer_pending++;
+    if (student.stage === 'placed') acc.placed++;
+    return acc;
+  }, { interviewing: 0, offer_pending: 0, placed: 0 });
 
-async function getPlacementData() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/placement`, { 
-      cache: 'no-store' 
-    });
-    if (!res.ok) return { interviewing: 0, offer_pending: 0, placed: 0 };
-    return await res.json();
-  } catch {
-    return { interviewing: 0, offer_pending: 0, placed: 0 };
-  }
-}
-
-async function getUpdatesData() {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/updates?date=${today}`, { 
-      cache: 'no-store' 
-    });
-    if (!res.ok) return { submitted_count: 0 };
-    const data = await res.json();
-    return { submitted_count: data.submitted_count || 0 };
-  } catch {
-    return { submitted_count: 0 };
-  }
+  return {
+    studentsCount: allStudents.length,
+    riskCount: atRiskStudents.length,
+    riskStudents: atRiskStudents.slice(0, 5),
+    placementStats,
+    updatesCount: updatesToday.length
+  };
 }
 
 async function DashboardContent() {
-  const [studentsData, riskData, placementData, updatesData] = await Promise.all([
-    getStudentsData(),
-    getRiskData(),
-    getPlacementData(),
-    getUpdatesData(),
-  ]);
+  const data = await getDashboardData();
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatsCard
           title="Total Students"
-          value={studentsData.total}
+          value={data.studentsCount}
           icon={Users}
           color="indigo"
         />
         <StatsCard
           title="At Risk"
-          value={riskData.total}
+          value={data.riskCount}
           icon={AlertTriangle}
           color="red"
         />
         <StatsCard
           title="Interviewing"
-          value={placementData.interviewing}
+          value={data.placementStats.interviewing}
           icon={UsersRound}
           color="blue"
         />
         <StatsCard
           title="Offer Pending"
-          value={placementData.offer_pending}
+          value={data.placementStats.offer_pending}
           icon={Clock}
           color="amber"
         />
         <StatsCard
           title="Placed"
-          value={placementData.placed}
+          value={data.placementStats.placed}
           icon={CheckCircle}
           color="emerald"
         />
         <StatsCard
           title="Updates Today"
-          value={updatesData.submitted_count}
+          value={data.updatesCount}
           icon={FileText}
           color="indigo"
         />
@@ -117,7 +85,7 @@ async function DashboardContent() {
             </Link>
           </CardHeader>
           <CardContent>
-            <RiskTable students={riskData.students} maxRows={5} />
+            <RiskTable students={data.riskStudents} maxRows={5} />
           </CardContent>
         </Card>
 
@@ -126,7 +94,7 @@ async function DashboardContent() {
             <CardTitle>Placement Funnel</CardTitle>
           </CardHeader>
           <CardContent>
-            <PlacementFunnel stats={placementData} />
+            <PlacementFunnel stats={data.placementStats} />
           </CardContent>
         </Card>
       </div>
@@ -163,8 +131,10 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent />
-    </Suspense>
+    <div className="space-y-6">
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent />
+      </Suspense>
+    </div>
   );
 }

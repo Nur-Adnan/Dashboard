@@ -14,7 +14,7 @@ export async function POST() {
       );
     }
 
-    const payload = verifyRefreshToken(refreshToken);
+    const payload = await verifyRefreshToken(refreshToken);
     const newAccessToken = signAccessToken({
       id: payload.id,
       email: payload.email,
