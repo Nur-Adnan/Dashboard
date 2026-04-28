@@ -9,6 +9,7 @@ import { StudentTable } from '@/components/dashboard/StudentTable';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 export default function StudentsPage() {
@@ -19,9 +20,10 @@ export default function StudentsPage() {
   useEffect(() => {
     const newFilters: Record<string, string> = {};
     searchParams.forEach((value, key) => {
-      if (key !== 'page') {
-        newFilters[key] = value;
-      }
+      // Skip pagination and any 'all' sentinel values — they mean "no filter"
+      if (key === 'page') return;
+      if (value === 'all' || value === '') return;
+      newFilters[key] = value;
     });
     setFilters(newFilters);
   }, [searchParams]);
@@ -71,11 +73,12 @@ function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState('');
   const [batch, setBatch] = useState('');
   const [mentorEmail, setMentorEmail] = useState('');
+  const [jobFocus, setJobFocus] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !batch || !mentorEmail) {
-      toast.error('All fields are required');
+      toast.error('Name, batch, and mentor email are required');
       return;
     }
 
@@ -84,7 +87,12 @@ function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
       const res = await fetch('/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, batch, mentor_email: mentorEmail }),
+        body: JSON.stringify({
+          name,
+          batch,
+          mentor_email: mentorEmail,
+          ...(jobFocus ? { job_focus: jobFocus } : {}),
+        }),
       });
 
       const data = await res.json();
@@ -121,6 +129,20 @@ function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setMentorEmail(e.target.value)}
           placeholder="mentor@example.com"
         />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Job Focus <span className="text-muted-foreground font-normal">(optional)</span></label>
+        <Select value={jobFocus || 'none'} onValueChange={(v) => setJobFocus(v === 'none' ? '' : (v ?? ''))}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select preference" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No Preference</SelectItem>
+            <SelectItem value="remote">Remote</SelectItem>
+            <SelectItem value="onsite">Onsite</SelectItem>
+            <SelectItem value="hybrid">Hybrid</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -5,6 +5,7 @@ export const CreateStudentSchema = z.object({
   name: z.string().min(2).max(100),
   batch: z.string().min(1).max(50),
   mentor_email: z.string().email(),
+  job_focus: z.enum(['remote', 'onsite', 'hybrid']).optional(),
 });
 
 export type CreateStudentInput = z.infer<typeof CreateStudentSchema>;
@@ -13,10 +14,13 @@ export const UpdateStudentSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   batch: z.string().min(1).max(50).optional(),
   mentor_email: z.string().email().optional(),
-  stage: z.enum(['learning', 'applying', 'interviewing', 'offer_pending', 'placed']).optional(),
+  stage: z.enum(['learning', 'applying', 'interviewing', 'offer_pending', 'placed', 'hired']).optional(),
   risk_status: z.enum(['safe', 'at_risk']).optional(),
   risk_reasons: z.string().optional(),
   last_activity_date: z.string().optional(),
+  job_focus: z.enum(['remote', 'onsite', 'hybrid', '']).optional(),
+  terminated: z.boolean().optional(),
+  hired: z.boolean().optional(),
 });
 
 export type UpdateStudentInput = z.infer<typeof UpdateStudentSchema>;

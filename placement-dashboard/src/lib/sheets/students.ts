@@ -1,8 +1,13 @@
 import { readSheet, appendRow, updateRow, findRowIndex } from './client';
-import type { Student, StudentStage, RiskStatus } from '@/types';
+import type { Student, StudentStage, RiskStatus, JobFocus } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
-const HEADERS = ['id', 'name', 'batch', 'mentor_email', 'stage', 'risk_status', 'risk_reasons', 'last_activity_date', 'created_at', 'updated_at'];
+const HEADERS = [
+  'id', 'name', 'batch', 'mentor_email', 'stage',
+  'risk_status', 'risk_reasons', 'last_activity_date',
+  'job_focus', 'terminated', 'hired',
+  'created_at', 'updated_at',
+];
 
 function rowToStudent(row: string[]): Student {
   return {
@@ -14,8 +19,11 @@ function rowToStudent(row: string[]): Student {
     risk_status: (row[5] as RiskStatus) || 'safe',
     risk_reasons: row[6] || '',
     last_activity_date: row[7] || '',
-    created_at: row[8] || '',
-    updated_at: row[9] || '',
+    job_focus: (row[8] as JobFocus) || '',
+    terminated: row[9] === 'true',
+    hired: row[10] === 'true',
+    created_at: row[11] || '',
+    updated_at: row[12] || '',
   };
 }
 
@@ -29,6 +37,9 @@ function studentToRow(student: Partial<Student>): unknown[] {
     student.risk_status || 'safe',
     student.risk_reasons || '',
     student.last_activity_date || '',
+    student.job_focus || '',
+    String(student.terminated ?? false),
+    String(student.hired ?? false),
     student.created_at || '',
     student.updated_at || '',
   ];
@@ -44,7 +55,7 @@ export async function getStudentById(id: string): Promise<Student | null> {
   return students.find(s => s.id === id) || null;
 }
 
-export async function createStudent(data: Pick<Student, 'name' | 'batch' | 'mentor_email'>): Promise<Student> {
+export async function createStudent(data: Pick<Student, 'name' | 'batch' | 'mentor_email'> & { job_focus?: Student['job_focus'] }): Promise<Student> {
   const now = new Date().toISOString();
   const student: Student = {
     id: uuidv4(),
@@ -55,6 +66,9 @@ export async function createStudent(data: Pick<Student, 'name' | 'batch' | 'ment
     risk_status: 'safe',
     risk_reasons: '',
     last_activity_date: now,
+    job_focus: data.job_focus || '',
+    terminated: false,
+    hired: false,
     created_at: now,
     updated_at: now,
   };
@@ -84,9 +98,22 @@ export async function getStudentsByMentor(mentorEmail: string): Promise<Student[
   return students.filter(s => s.mentor_email === mentorEmail);
 }
 
-export async function filterStudents(filters: { stage?: StudentStage; risk_status?: RiskStatus; batch?: string; mentor_email?: string }): Promise<Student[]> {
+export async function filterStudents(filters: {
+  stage?: StudentStage;
+  risk_status?: RiskStatus;
+  batch?: string;
+  mentor_email?: string;
+  job_focus?: string;
+  terminated?: boolean;
+  hired?: boolean;
+  search?: string;
+}): Promise<Student[]> {
   let students = await getAllStudents();
-  
+
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    students = students.filter(s => s.name.toLowerCase().includes(q));
+  }
   if (filters.stage) {
     students = students.filter(s => s.stage === filters.stage);
   }
@@ -94,11 +121,20 @@ export async function filterStudents(filters: { stage?: StudentStage; risk_statu
     students = students.filter(s => s.risk_status === filters.risk_status);
   }
   if (filters.batch) {
-    students = students.filter(s => s.batch === filters.batch);
+    students = students.filter(s => s.batch.toLowerCase().includes(filters.batch!.toLowerCase()));
   }
   if (filters.mentor_email) {
     students = students.filter(s => s.mentor_email === filters.mentor_email);
   }
-  
+  if (filters.job_focus) {
+    students = students.filter(s => s.job_focus === filters.job_focus);
+  }
+  if (filters.terminated !== undefined) {
+    students = students.filter(s => s.terminated === filters.terminated);
+  }
+  if (filters.hired !== undefined) {
+    students = students.filter(s => s.hired === filters.hired);
+  }
+
   return students;
 }

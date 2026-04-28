@@ -29,6 +29,15 @@ export function hasConsecutiveAbsences(logs: AttendanceLog[], count: number): bo
   return true;
 }
 
+/**
+ * A student is terminated when they have accumulated 3 or more total absences
+ * (not necessarily consecutive) across all their attendance logs.
+ */
+export function shouldTerminate(logs: AttendanceLog[]): boolean {
+  const totalAbsences = logs.filter(log => !log.present).length;
+  return totalAbsences >= 3;
+}
+
 export async function evaluateStudentRisk(
   student: Student,
   attendanceLogs: AttendanceLog[],
@@ -69,10 +78,21 @@ export async function runRiskScan(): Promise<{ updated: number; newly_at_risk: s
   const newlyAtRisk: string[] = [];
 
   for (const student of students) {
+    // Skip already-terminated or hired students from risk/termination re-evaluation
+    if (student.terminated || student.hired) continue;
+
     const attendanceLogs = await getAttendanceByStudent(student.id, 14);
     const progressLogs = await getProgressByStudent(student.id);
+
+    // Termination check: 3+ total absences
+    if (shouldTerminate(attendanceLogs) && !student.terminated) {
+      await updateStudent(student.id, { terminated: true });
+      updated++;
+      continue; // terminated students don't need risk evaluation
+    }
+
     const result = await evaluateStudentRisk(student, attendanceLogs, progressLogs);
-    
+
     if (result.is_at_risk && student.risk_status === 'safe') {
       await updateStudent(student.id, {
         risk_status: 'at_risk',

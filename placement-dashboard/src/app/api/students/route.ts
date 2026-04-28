@@ -15,14 +15,36 @@ export async function GET(request: Request) {
     const stage = searchParams.get('stage') as StudentStage | null;
     const risk_status = searchParams.get('risk_status') as RiskStatus | null;
     const batch = searchParams.get('batch');
+    const search = searchParams.get('search');
+    const job_focus = searchParams.get('job_focus');
+    const terminatedParam = searchParams.get('terminated');
+    const hiredParam = searchParams.get('hired');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const user = requireRole(request.headers, ['admin', 'mentor', 'placement']);
 
-    const filters: { stage?: StudentStage; risk_status?: RiskStatus; batch?: string; mentor_email?: string } = {};
-    if (stage) filters.stage = stage;
-    if (risk_status) filters.risk_status = risk_status;
-    if (batch) filters.batch = batch;
+    const filters: {
+      stage?: StudentStage;
+      risk_status?: RiskStatus;
+      batch?: string;
+      mentor_email?: string;
+      job_focus?: string;
+      terminated?: boolean;
+      hired?: boolean;
+      search?: string;
+    } = {};
+
+    // Only apply filters when they have a real value (not null, empty, or 'all')
+    if (stage && stage !== 'all') filters.stage = stage;
+    if (risk_status && risk_status !== 'all') filters.risk_status = risk_status;
+    if (batch && batch !== 'all') filters.batch = batch;
+    if (search) filters.search = search;
+    if (job_focus && job_focus !== 'all') filters.job_focus = job_focus;
+    // Boolean filters: only apply when explicitly 'true' or 'false', not 'all' or null
+    if (terminatedParam === 'true') filters.terminated = true;
+    else if (terminatedParam === 'false') filters.terminated = false;
+    if (hiredParam === 'true') filters.hired = true;
+    else if (hiredParam === 'false') filters.hired = false;
 
     if (user.role === 'mentor') {
       filters.mentor_email = user.email;
@@ -39,10 +61,7 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     const status = isApiError(error) ? error.status : 500;
     const message = isApiError(error) ? error.message : 'Internal server error';
-    return NextResponse.json(
-      { message },
-      { status }
-    );
+    return NextResponse.json({ message }, { status });
   }
 }
 
@@ -65,9 +84,6 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     const status = isApiError(error) ? error.status : 500;
     const message = isApiError(error) ? error.message : 'Internal server error';
-    return NextResponse.json(
-      { message },
-      { status }
-    );
+    return NextResponse.json({ message }, { status });
   }
 }

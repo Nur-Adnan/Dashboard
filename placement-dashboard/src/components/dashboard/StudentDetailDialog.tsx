@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-import { Student, StudentStage } from '@/types';
+import { Student, StudentStage, JobFocus } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const getStageBadgeProps = (stage: string): { variant: "default" | "secondary" |
     case 'interviewing': return { variant: 'default' };
     case 'offer_pending': return { variant: 'default' };
     case 'placed': return { variant: 'outline', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' };
+    case 'hired': return { variant: 'outline', className: 'bg-green-500/10 text-green-700 border-green-500/20' };
     default: return { variant: 'outline' };
   }
 };
@@ -27,32 +28,63 @@ interface StudentDetailDialogProps {
 }
 
 export function StudentDetailDialog({ student, onClose }: StudentDetailDialogProps) {
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingStage, setIsUpdatingStage] = useState(false);
+  const [isUpdatingJobFocus, setIsUpdatingJobFocus] = useState(false);
+  const [isMarkingHired, setIsMarkingHired] = useState(false);
   const [newStage, setNewStage] = useState<StudentStage>(student?.stage || 'learning');
+  const [newJobFocus, setNewJobFocus] = useState<JobFocus | ''>(student?.job_focus || '');
 
   if (!student) return null;
 
+  const patch = async (payload: Record<string, unknown>) => {
+    const res = await fetch(`/api/students/${student.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || 'Failed to update');
+    }
+    return res.json();
+  };
+
   const handleUpdateStage = async () => {
-    setIsUpdating(true);
+    setIsUpdatingStage(true);
     try {
-      const res = await fetch(`/api/students/${student.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stage: newStage }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        toast.error(data.message || 'Failed to update');
-        return;
-      }
-
+      await patch({ stage: newStage });
       toast.success('Stage updated');
       onClose();
-    } catch {
-      toast.error('An error occurred');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingStage(false);
+    }
+  };
+
+  const handleUpdateJobFocus = async () => {
+    setIsUpdatingJobFocus(true);
+    try {
+      await patch({ job_focus: newJobFocus });
+      toast.success('Job focus updated');
+      onClose();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsUpdatingJobFocus(false);
+    }
+  };
+
+  const handleMarkHired = async () => {
+    setIsMarkingHired(true);
+    try {
+      await patch({ hired: true, stage: 'hired' });
+      toast.success(`${student.name} marked as hired`);
+      onClose();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsMarkingHired(false);
     }
   };
 
@@ -60,10 +92,23 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
     <Dialog open={!!student} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{student.name}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {student.name}
+            {student.hired && (
+              <Badge className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">
+                Hired
+              </Badge>
+            )}
+            {student.terminated && (
+              <Badge variant="destructive" className="text-xs opacity-80">
+                Terminated
+              </Badge>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Core info */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Batch</p>
@@ -85,8 +130,19 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
                 {student.risk_status === 'at_risk' ? 'At Risk' : 'Safe'}
               </Badge>
             </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Job Focus</p>
+              {student.job_focus ? (
+                <Badge variant="outline" className="mt-1 capitalize">
+                  {student.job_focus}
+                </Badge>
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">Not set</p>
+              )}
+            </div>
           </div>
 
+          {/* Risk reasons */}
           {student.risk_reasons && (
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Risk Reasons</p>
@@ -100,6 +156,7 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
             </div>
           )}
 
+          {/* Timestamps */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Created</p>
@@ -111,24 +168,72 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-4 border-t border-border/50">
-            <Select value={newStage} onValueChange={(v) => setNewStage(v as StudentStage)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Change Stage" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="learning">Learning</SelectItem>
-                <SelectItem value="applying">Applying</SelectItem>
-                <SelectItem value="interviewing">Interviewing</SelectItem>
-                <SelectItem value="offer_pending">Offer Pending</SelectItem>
-                <SelectItem value="placed">Placed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleUpdateStage} disabled={isUpdating || newStage === student.stage}>
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save
-            </Button>
-          </div>
+          {/* Actions — hidden for terminated students */}
+          {!student.terminated && (
+            <div className="space-y-3 pt-4 border-t border-border/50">
+              {/* Stage update */}
+              <div className="flex items-center gap-2">
+                <Select value={newStage} onValueChange={(v) => setNewStage(v as StudentStage)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Change Stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="learning">Learning</SelectItem>
+                    <SelectItem value="applying">Applying</SelectItem>
+                    <SelectItem value="interviewing">Interviewing</SelectItem>
+                    <SelectItem value="offer_pending">Offer Pending</SelectItem>
+                    <SelectItem value="placed">Placed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleUpdateStage}
+                  disabled={isUpdatingStage || newStage === student.stage}
+                  size="sm"
+                >
+                  {isUpdatingStage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Stage
+                </Button>
+              </div>
+
+              {/* Job focus update */}
+              <div className="flex items-center gap-2">
+                <Select value={newJobFocus || 'none'} onValueChange={(v) => setNewJobFocus(v === 'none' ? '' : v as JobFocus)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Set Job Focus" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Preference</SelectItem>
+                    <SelectItem value="remote">Remote</SelectItem>
+                    <SelectItem value="onsite">Onsite</SelectItem>
+                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleUpdateJobFocus}
+                  disabled={isUpdatingJobFocus || newJobFocus === student.job_focus}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isUpdatingJobFocus && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Focus
+                </Button>
+              </div>
+
+              {/* Mark as hired */}
+              {!student.hired && (
+                <div className="pt-1">
+                  <Button
+                    onClick={handleMarkHired}
+                    disabled={isMarkingHired}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {isMarkingHired && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Mark as Hired
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

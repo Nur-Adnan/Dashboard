@@ -1,6 +1,8 @@
-export type StudentStage = "learning" | "applying" | "interviewing" | "offer_pending" | "placed";
+export type StudentStage = "learning" | "applying" | "interviewing" | "offer_pending" | "placed" | "hired";
 
 export type RiskStatus = "safe" | "at_risk";
+
+export type JobFocus = "remote" | "onsite" | "hybrid";
 
 export type UserRole = "admin" | "mentor" | "placement";
 
@@ -13,6 +15,9 @@ export interface Student {
   risk_status: RiskStatus;
   risk_reasons: string;
   last_activity_date: string;
+  job_focus: JobFocus | "";
+  terminated: boolean;
+  hired: boolean;
   created_at: string;
   updated_at: string;
 }

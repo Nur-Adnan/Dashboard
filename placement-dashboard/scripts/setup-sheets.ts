@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 const SHEETS = ['students', 'attendance_logs', 'progress_logs', 'team_updates', 'users'];
 
 const HEADERS: Record<string, string[]> = {
-  students: ['id', 'name', 'batch', 'mentor_email', 'stage', 'risk_status', 'risk_reasons', 'last_activity_date', 'created_at', 'updated_at'],
+  students: ['id', 'name', 'batch', 'mentor_email', 'stage', 'risk_status', 'risk_reasons', 'last_activity_date', 'job_focus', 'terminated', 'hired', 'created_at', 'updated_at'],
   attendance_logs: ['id', 'student_id', 'date', 'present', 'logged_by'],
   progress_logs: ['id', 'student_id', 'note', 'logged_at', 'logged_by'],
   team_updates: ['id', 'submitted_by', 'role', 'date', 'goals', 'achievements', 'blockers', 'submitted_at'],
