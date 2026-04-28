@@ -2,49 +2,80 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Student } from '@/types';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { GripVertical } from 'lucide-react';
+
+type KanbanStudent = {
+  id: string;
+  name: string;
+  batch: string;
+  days_in_stage: number;
+};
 
 interface KanbanCardProps {
-  student: Student;
+  student: KanbanStudent;
+  isOverlay?: boolean;
 }
 
-export function KanbanCard({ student }: KanbanCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: student.id,
-  });
+export function KanbanCard({ student, isOverlay = false }: KanbanCardProps) {
+  const {
+    attributes, listeners, setNodeRef,
+    transform, transition, isDragging,
+  } = useSortable({ id: student.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
   };
 
-  const initials = student.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  const daysInStage = Math.floor((Date.now() - new Date(student.updated_at).getTime()) / (1000 * 60 * 60 * 24));
+  const initials = student.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const days = Number.isFinite(student.days_in_stage) ? student.days_in_stage : 0;
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card className="cursor-grab hover:shadow-md transition-all duration-200 mb-2 border-border/50">
-        <CardContent className="p-3">
-          <div className="flex items-start gap-3">
-            <Avatar className="w-8 h-8 shadow-sm">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm text-foreground truncate">{student.name}</p>
-              <p className="text-xs text-muted-foreground">{student.batch}</p>
-              <Badge variant="secondary" className="mt-1.5 text-[10px] font-normal shadow-none">
-                {daysInStage} days in stage
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className={cn(
+        'group flex items-start gap-2.5 rounded-lg border border-border/60 bg-background p-3',
+        'shadow-sm hover:shadow-md transition-all duration-150 select-none',
+        isDragging && !isOverlay && 'opacity-40 shadow-none',
+        isOverlay && 'shadow-xl rotate-1 scale-105 cursor-grabbing',
+        !isOverlay && 'cursor-grab',
+      )}
+    >
+      {/* Drag handle */}
+      <div
+        {...listeners}
+        className="mt-0.5 shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-grab"
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </div>
+
+      {/* Avatar */}
+      <Avatar className="w-7 h-7 shrink-0 border shadow-sm">
+        <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground truncate leading-tight">
+          {student.name}
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{student.batch}</p>
+        <p className="text-[10px] text-muted-foreground/70 mt-1">
+          {days === 0 ? 'Today' : `${days}d in stage`}
+        </p>
+      </div>
     </div>
   );
 }
