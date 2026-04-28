@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUpdatesByDate, hasSubmittedToday, submitUpdate } from '@/lib/sheets/updates';
-import { TeamUpdateSchema } from '@/lib/validators/update.schema';
+import { TeamUpdateSchema, TeamUpdateBodySchema } from '@/lib/validators/update.schema';
 import { requireRole } from '@/lib/auth/helpers';
 import type { ApiError } from '@/lib/auth/helpers';
 
@@ -48,11 +48,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const result = TeamUpdateSchema.safeParse(body);
+    const result = TeamUpdateBodySchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
-        { message: 'Validation failed', errors: result.error.flatten().fieldErrors },
+        { message: 'Validation failed', errors: result.error.issues },
         { status: 400 }
       );
     }

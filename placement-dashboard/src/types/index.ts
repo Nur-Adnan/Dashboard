@@ -42,6 +42,7 @@ export interface TeamUpdate {
   achievements: string;
   blockers: string;
   submitted_at: string;
+  edited_at?: string;
 }
 
 export interface User {

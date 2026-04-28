@@ -65,6 +65,34 @@ export async function updateRow(sheetName: string, rowIndex: number, values: unk
   }
 }
 
+export async function deleteRow(sheetName: string, rowIndex: number): Promise<void> {
+  try {
+    const client = await getSheetsClient();
+    // Get the sheet ID first
+    const meta = await client.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+    const sheet = meta.data.sheets?.find(s => s.properties?.title === sheetName);
+    if (!sheet?.properties?.sheetId) throw new Error(`Sheet "${sheetName}" not found`);
+
+    await client.spreadsheets.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID,
+      requestBody: {
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId: sheet.properties.sheetId,
+              dimension: 'ROWS',
+              startIndex: rowIndex - 1, // 0-based
+              endIndex: rowIndex,        // exclusive
+            },
+          },
+        }],
+      },
+    });
+  } catch (error) {
+    console.error(`Error deleting row in ${sheetName}:`, error);
+    throw error;
+  }
+}
 export async function findRowIndex(sheetName: string, columnIndex: number, value: string): Promise<number> {
   try {
     const client = await getSheetsClient();
