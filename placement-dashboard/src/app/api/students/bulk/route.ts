@@ -71,6 +71,9 @@ export async function POST(request: Request) {
       const jobFocusRaw = String(
         row['job_focus'] ?? row['Job Focus'] ?? row['job focus'] ?? ''
       ).trim().toLowerCase();
+      const experienceRaw = String(
+        row['experience'] ?? row['Experience'] ?? ''
+      ).trim().toLowerCase();
 
       // Validate required fields
       if (!name) {
@@ -105,8 +108,13 @@ export async function POST(request: Request) {
         ? (jobFocusRaw as JobFocus)
         : undefined;
 
+      const VALID_EXPERIENCE = ['fresher', 'experienced'];
+      const experience = VALID_EXPERIENCE.includes(experienceRaw)
+        ? (experienceRaw as 'fresher' | 'experienced')
+        : undefined;
+
       try {
-        await createStudent({ name, batch, mentor_email: mentorEmail, job_focus: jobFocus });
+        await createStudent({ name, batch, mentor_email: mentorEmail, job_focus: jobFocus, experience });
         results.push({ row: rowNum, name, success: true });
         created++;
       } catch {

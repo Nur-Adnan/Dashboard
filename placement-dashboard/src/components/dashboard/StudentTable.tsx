@@ -65,8 +65,8 @@ export function StudentTable({ filters }: StudentTableProps) {
   const totalPages = data?.pages || 1;
 
   const getRowClassName = (student: Student) => {
-    if (student.terminated) return 'bg-zinc-100 opacity-60 hover:opacity-80';
-    if (student.hired) return 'bg-green-50 hover:bg-green-100/70';
+    if (student.terminated) return 'bg-red-50 border-l-4 border-l-red-500 hover:bg-red-100/60';
+    if (student.hired) return 'bg-green-50 border-l-4 border-l-green-500 hover:bg-green-100/70';
     if (student.risk_status === 'at_risk') return 'bg-destructive/5 hover:bg-destructive/10';
     return 'hover:bg-muted/50';
   };
@@ -83,6 +83,7 @@ export function StudentTable({ filters }: StudentTableProps) {
               <TableHead className="font-semibold text-slate-600">Stage</TableHead>
               <TableHead className="font-semibold text-slate-600">Risk</TableHead>
               <TableHead className="font-semibold text-slate-600">Job Focus</TableHead>
+              <TableHead className="font-semibold text-slate-600">Experience</TableHead>
               <TableHead className="font-semibold text-slate-600">Status</TableHead>
               <TableHead className="font-semibold text-slate-600">Last Activity</TableHead>
               <TableHead className="font-semibold text-slate-600">Actions</TableHead>
@@ -91,26 +92,30 @@ export function StudentTable({ filters }: StudentTableProps) {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
+                <TableCell colSpan={10} className="text-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                 </TableCell>
               </TableRow>
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-destructive">
+                <TableCell colSpan={10} className="text-center py-8 text-destructive">
                   Error loading students
                 </TableCell>
               </TableRow>
             ) : students.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   No students found
                 </TableCell>
               </TableRow>
             ) : (
               students.map((student: Student) => (
                 <TableRow key={student.id} className={getRowClassName(student)}>
-                  <TableCell className="font-medium">{student.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className={student.terminated ? 'line-through text-muted-foreground' : ''}>
+                      {student.name}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{student.batch}</TableCell>
                   <TableCell className="text-muted-foreground">{student.mentor_email}</TableCell>
                   <TableCell>
@@ -136,15 +141,30 @@ export function StudentTable({ filters }: StudentTableProps) {
                     )}
                   </TableCell>
                   <TableCell>
+                    {student.experience === 'fresher' && (
+                      <Badge variant="outline" className="text-sky-600 border-sky-300 bg-sky-50">
+                        Fresher
+                      </Badge>
+                    )}
+                    {student.experience === 'experienced' && (
+                      <Badge variant="outline" className="text-violet-600 border-violet-300 bg-violet-50">
+                        Experienced
+                      </Badge>
+                    )}
+                    {!student.experience && (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-col gap-1">
                       {student.hired && (
-                        <Badge className="bg-green-500/10 text-green-700 border-green-500/20 w-fit">
-                          Hired
+                        <Badge className="bg-green-500/10 text-green-700 border border-green-500/30 w-fit font-semibold">
+                          ✓ Hired
                         </Badge>
                       )}
                       {student.terminated && (
-                        <Badge variant="destructive" className="opacity-80 w-fit">
-                          Terminated
+                        <Badge className="bg-red-100 text-red-700 border border-red-400 w-fit font-semibold tracking-wide">
+                          ✕ Terminated
                         </Badge>
                       )}
                       {!student.hired && !student.terminated && (

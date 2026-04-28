@@ -4,6 +4,8 @@ export type RiskStatus = "safe" | "at_risk";
 
 export type JobFocus = "remote" | "onsite" | "hybrid";
 
+export type ExperienceLevel = "fresher" | "experienced";
+
 export type UserRole = "admin" | "mentor" | "placement";
 
 export interface Student {
@@ -20,6 +22,7 @@ export interface Student {
   hired: boolean;
   created_at: string;
   updated_at: string;
+  experience: ExperienceLevel | "";
 }
 
 export interface AttendanceLog {

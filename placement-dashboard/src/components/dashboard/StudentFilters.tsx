@@ -112,6 +112,17 @@ export function StudentFilters() {
         </SelectContent>
       </Select>
 
+      {/* Experience */}
+      <Select value={param('experience') || undefined} onValueChange={(v) => updateFilter('experience', v)}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue placeholder="Experience" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="fresher">Fresher</SelectItem>
+          <SelectItem value="experienced">Experienced</SelectItem>
+        </SelectContent>
+      </Select>
+
       {/* Batch */}
       <Input
         placeholder="Batch"

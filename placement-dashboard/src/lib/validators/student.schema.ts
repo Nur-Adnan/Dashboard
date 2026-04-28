@@ -6,6 +6,7 @@ export const CreateStudentSchema = z.object({
   batch: z.string().min(1).max(50),
   mentor_email: z.string().email(),
   job_focus: z.enum(['remote', 'onsite', 'hybrid']).optional(),
+  experience: z.enum(['fresher', 'experienced']).optional(),
 });
 
 export type CreateStudentInput = z.infer<typeof CreateStudentSchema>;
@@ -21,6 +22,7 @@ export const UpdateStudentSchema = z.object({
   job_focus: z.enum(['remote', 'onsite', 'hybrid', '']).optional(),
   terminated: z.boolean().optional(),
   hired: z.boolean().optional(),
+  experience: z.enum(['fresher', 'experienced', '']).optional(),
 });
 
 export type UpdateStudentInput = z.infer<typeof UpdateStudentSchema>;

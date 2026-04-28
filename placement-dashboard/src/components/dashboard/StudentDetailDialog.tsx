@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-import { Student, StudentStage, JobFocus } from '@/types';
+import { Student, StudentStage, JobFocus, ExperienceLevel } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,9 +30,11 @@ interface StudentDetailDialogProps {
 export function StudentDetailDialog({ student, onClose }: StudentDetailDialogProps) {
   const [isUpdatingStage, setIsUpdatingStage] = useState(false);
   const [isUpdatingJobFocus, setIsUpdatingJobFocus] = useState(false);
+  const [isUpdatingExperience, setIsUpdatingExperience] = useState(false);
   const [isMarkingHired, setIsMarkingHired] = useState(false);
   const [newStage, setNewStage] = useState<StudentStage>(student?.stage || 'learning');
   const [newJobFocus, setNewJobFocus] = useState<JobFocus | ''>(student?.job_focus || '');
+  const [newExperience, setNewExperience] = useState<ExperienceLevel | ''>(student?.experience || '');
 
   if (!student) return null;
 
@@ -72,6 +74,19 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsUpdatingJobFocus(false);
+    }
+  };
+
+  const handleUpdateExperience = async () => {
+    setIsUpdatingExperience(true);
+    try {
+      await patch({ experience: newExperience });
+      toast.success('Experience updated');
+      onClose();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsUpdatingExperience(false);
     }
   };
 
@@ -137,6 +152,18 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
                   {student.job_focus}
                 </Badge>
               ) : (
+                <p className="text-sm text-muted-foreground mt-1">Not set</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Experience</p>
+              {student.experience === 'fresher' && (
+                <Badge variant="outline" className="mt-1 text-sky-600 border-sky-300 bg-sky-50">Fresher</Badge>
+              )}
+              {student.experience === 'experienced' && (
+                <Badge variant="outline" className="mt-1 text-violet-600 border-violet-300 bg-violet-50">Experienced</Badge>
+              )}
+              {!student.experience && (
                 <p className="text-sm text-muted-foreground mt-1">Not set</p>
               )}
             </div>
@@ -216,6 +243,28 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
                 >
                   {isUpdatingJobFocus && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Focus
+                </Button>
+              </div>
+
+              {/* Experience update */}
+              <div className="flex items-center gap-2">
+                <Select value={newExperience || undefined} onValueChange={(v) => setNewExperience(v as ExperienceLevel)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Set Experience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fresher">Fresher</SelectItem>
+                    <SelectItem value="experienced">Experienced</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleUpdateExperience}
+                  disabled={isUpdatingExperience || newExperience === student.experience}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isUpdatingExperience && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save
                 </Button>
               </div>
 

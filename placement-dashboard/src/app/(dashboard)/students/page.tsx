@@ -97,6 +97,7 @@ function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
   const [batch, setBatch] = useState('');
   const [mentorEmail, setMentorEmail] = useState('');
   const [jobFocus, setJobFocus] = useState('');
+  const [experience, setExperience] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +116,7 @@ function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
           batch,
           mentor_email: mentorEmail,
           ...(jobFocus ? { job_focus: jobFocus } : {}),
+          ...(experience ? { experience } : {}),
         }),
       });
 
@@ -155,15 +157,26 @@ function AddStudentForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Job Focus <span className="text-muted-foreground font-normal">(optional)</span></label>
-        <Select value={jobFocus || 'none'} onValueChange={(v) => setJobFocus(v === 'none' ? '' : (v ?? ''))}>
+        <Select value={jobFocus || undefined} onValueChange={(v) => setJobFocus(v ?? '')}>
           <SelectTrigger>
-            <SelectValue placeholder="Select preference" />
+            <SelectValue placeholder="No Preference" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No Preference</SelectItem>
             <SelectItem value="remote">Remote</SelectItem>
             <SelectItem value="onsite">Onsite</SelectItem>
             <SelectItem value="hybrid">Hybrid</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Experience <span className="text-muted-foreground font-normal">(optional)</span></label>
+        <Select value={experience || undefined} onValueChange={(v) => setExperience(v ?? '')}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="fresher">Fresher</SelectItem>
+            <SelectItem value="experienced">Experienced</SelectItem>
           </SelectContent>
         </Select>
       </div>

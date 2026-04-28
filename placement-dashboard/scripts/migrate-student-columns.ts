@@ -35,7 +35,7 @@ const NEW_HEADERS = [
   'id', 'name', 'batch', 'mentor_email', 'stage',
   'risk_status', 'risk_reasons', 'last_activity_date',
   'job_focus', 'terminated', 'hired',
-  'created_at', 'updated_at',
+  'created_at', 'updated_at', 'experience',
 ];
 
 async function run() {

@@ -1,12 +1,12 @@
 import { readSheet, appendRow, updateRow, findRowIndex } from './client';
-import type { Student, StudentStage, RiskStatus, JobFocus } from '@/types';
+import type { Student, StudentStage, RiskStatus, JobFocus, ExperienceLevel } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const HEADERS = [
   'id', 'name', 'batch', 'mentor_email', 'stage',
   'risk_status', 'risk_reasons', 'last_activity_date',
   'job_focus', 'terminated', 'hired',
-  'created_at', 'updated_at',
+  'created_at', 'updated_at', 'experience',
 ];
 
 function rowToStudent(row: string[]): Student {
@@ -24,6 +24,7 @@ function rowToStudent(row: string[]): Student {
     hired: row[10] === 'true',
     created_at: row[11] || '',
     updated_at: row[12] || '',
+    experience: (row[13] as ExperienceLevel) || '',
   };
 }
 
@@ -42,6 +43,7 @@ function studentToRow(student: Partial<Student>): unknown[] {
     String(student.hired ?? false),
     student.created_at || '',
     student.updated_at || '',
+    student.experience || '',
   ];
 }
 
@@ -55,7 +57,7 @@ export async function getStudentById(id: string): Promise<Student | null> {
   return students.find(s => s.id === id) || null;
 }
 
-export async function createStudent(data: Pick<Student, 'name' | 'batch' | 'mentor_email'> & { job_focus?: Student['job_focus'] }): Promise<Student> {
+export async function createStudent(data: Pick<Student, 'name' | 'batch' | 'mentor_email'> & { job_focus?: Student['job_focus']; experience?: Student['experience'] }): Promise<Student> {
   const now = new Date().toISOString();
   const student: Student = {
     id: uuidv4(),
@@ -71,6 +73,7 @@ export async function createStudent(data: Pick<Student, 'name' | 'batch' | 'ment
     hired: false,
     created_at: now,
     updated_at: now,
+    experience: data.experience || '',
   };
   await appendRow('students', studentToRow(student));
   return student;
@@ -107,6 +110,7 @@ export async function filterStudents(filters: {
   terminated?: boolean;
   hired?: boolean;
   search?: string;
+  experience?: string;
 }): Promise<Student[]> {
   let students = await getAllStudents();
 
@@ -134,6 +138,9 @@ export async function filterStudents(filters: {
   }
   if (filters.hired !== undefined) {
     students = students.filter(s => s.hired === filters.hired);
+  }
+  if (filters.experience) {
+    students = students.filter(s => s.experience === filters.experience);
   }
 
   return students;

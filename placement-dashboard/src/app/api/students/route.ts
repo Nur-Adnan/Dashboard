@@ -19,6 +19,7 @@ export async function GET(request: Request) {
     const job_focus = searchParams.get('job_focus');
     const terminatedParam = searchParams.get('terminated');
     const hiredParam = searchParams.get('hired');
+    const experience = searchParams.get('experience');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const user = requireRole(request.headers, ['admin', 'mentor', 'placement']);
@@ -32,11 +33,12 @@ export async function GET(request: Request) {
       terminated?: boolean;
       hired?: boolean;
       search?: string;
+      experience?: string;
     } = {};
 
     // Only apply filters when they have a real value (not null, empty, or 'all')
-    if (stage && stage !== 'all') filters.stage = stage;
-    if (risk_status && risk_status !== 'all') filters.risk_status = risk_status;
+    if (stage && (stage as string) !== 'all') filters.stage = stage;
+    if (risk_status && (risk_status as string) !== 'all') filters.risk_status = risk_status;
     if (batch && batch !== 'all') filters.batch = batch;
     if (search) filters.search = search;
     if (job_focus && job_focus !== 'all') filters.job_focus = job_focus;
@@ -45,6 +47,7 @@ export async function GET(request: Request) {
     else if (terminatedParam === 'false') filters.terminated = false;
     if (hiredParam === 'true') filters.hired = true;
     else if (hiredParam === 'false') filters.hired = false;
+    if (experience && experience !== 'all') filters.experience = experience;
 
     if (user.role === 'mentor') {
       filters.mentor_email = user.email;
