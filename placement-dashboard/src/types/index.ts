@@ -33,9 +33,17 @@ export interface AttendanceLog {
   logged_by: string;
 }
 
+export type ProgressLogType = "Interview Call" | "Job Task" | "Offer" | "Other";
+
 export interface ProgressLog {
   id: string;
   student_id: string;
+  student_name: string;
+  student_email: string;
+  log_type: ProgressLogType;
+  company_name: string;
+  scheduled_date: string;
+  scheduled_time: string;
   note: string;
   logged_at: string;
   logged_by: string;
