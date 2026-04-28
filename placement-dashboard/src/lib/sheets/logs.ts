@@ -3,8 +3,10 @@ import type { AttendanceLog, ProgressLog } from '@/types';
 import { subDays, format } from 'date-fns';
 
 const ATTENDANCE_HEADERS = ['id', 'student_id', 'date', 'present', 'logged_by'];
-const PROGRESS_HEADERS = ['id', 'student_id', 'note', 'logged_at', 'logged_by'];
 
+// progress_logs new schema (11 cols):
+// id | student_id | student_name | student_email | log_type | company_name |
+// scheduled_date | scheduled_time | note | logged_at | logged_by
 function rowToAttendanceLog(row: string[]): AttendanceLog {
   return {
     id: row[0] || '',
@@ -16,12 +18,20 @@ function rowToAttendanceLog(row: string[]): AttendanceLog {
 }
 
 function rowToProgressLog(row: string[]): ProgressLog {
+  // Support both old 5-col schema and new 11-col schema
+  const isNewSchema = row.length >= 10;
   return {
     id: row[0] || '',
     student_id: row[1] || '',
-    note: row[2] || '',
-    logged_at: row[3] || '',
-    logged_by: row[4] || '',
+    student_name: isNewSchema ? (row[2] || '') : '',
+    student_email: isNewSchema ? (row[3] || '') : '',
+    log_type: isNewSchema ? ((row[4] as import('@/types').ProgressLogType) || 'Other') : 'Other',
+    company_name: isNewSchema ? (row[5] || '') : '',
+    scheduled_date: isNewSchema ? (row[6] || '') : '',
+    scheduled_time: isNewSchema ? (row[7] || '') : '',
+    note: isNewSchema ? (row[8] || '') : (row[2] || ''),
+    logged_at: isNewSchema ? (row[9] || '') : (row[3] || ''),
+    logged_by: isNewSchema ? (row[10] || '') : (row[4] || ''),
   };
 }
 

@@ -89,4 +89,5 @@ export interface PlacementStats {
   interviewing: number;
   offer_pending: number;
   placed: number;
+  hired: number;
 }

@@ -14,6 +14,7 @@ export async function GET() {
       interviewing: 0,
       offer_pending: 0,
       placed: 0,
+      hired: 0,
     };
 
     const studentsByStage: Record<StudentStage, { id: string; name: string; batch: string; days_in_stage: number }[]> = {
@@ -22,17 +23,22 @@ export async function GET() {
       interviewing: [],
       offer_pending: [],
       placed: [],
+      hired: [],
     };
 
     for (const student of students) {
+      if (student.terminated) continue; // exclude terminated from pipeline
       const daysInStage = differenceInDays(now, new Date(student.updated_at));
-      stats[student.stage]++;
-      studentsByStage[student.stage].push({
-        id: student.id,
-        name: student.name,
-        batch: student.batch,
-        days_in_stage: daysInStage,
-      });
+      const stage = student.hired ? 'hired' : student.stage;
+      if (stage in stats) {
+        stats[stage as keyof PlacementStats]++;
+        studentsByStage[stage as StudentStage].push({
+          id: student.id,
+          name: student.name,
+          batch: student.batch,
+          days_in_stage: daysInStage,
+        });
+      }
     }
 
     return NextResponse.json({ ...stats, students_by_stage: studentsByStage });

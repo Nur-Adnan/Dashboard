@@ -10,13 +10,53 @@ const HEADERS = [
   'created_at', 'updated_at',
 ];
 
+const VALID_STAGES = new Set(['learning', 'applying', 'interviewing', 'offer_pending', 'placed', 'hired']);
+
+// Map any legacy / typo stage values to the closest valid stage
+function normalizeStage(raw: string): StudentStage {
+  const s = (raw || '').toLowerCase().trim();
+  if (VALID_STAGES.has(s)) return s as StudentStage;
+
+  // Common legacy / typo mappings — extend as needed
+  const map: Record<string, StudentStage> = {
+    // old skill-level labels used as stages
+    beginner:       'learning',
+    intermediate:   'applying',
+    advanced:       'interviewing',
+    // typos seen in sheet
+    bogliner:       'learning',
+    boginner:       'learning',
+    // partial matches / alternate spellings
+    learn:          'learning',
+    apply:          'applying',
+    applied:        'applying',
+    interview:      'interviewing',
+    interviewed:    'interviewing',
+    offer:          'offer_pending',
+    'offer pending':'offer_pending',
+    place:          'placed',
+    hire:           'hired',
+  };
+  if (map[s]) return map[s];
+
+  // Last resort: if it starts with a known prefix, map it
+  if (s.startsWith('learn'))     return 'learning';
+  if (s.startsWith('apply') || s.startsWith('appli')) return 'applying';
+  if (s.startsWith('interview')) return 'interviewing';
+  if (s.startsWith('offer'))     return 'offer_pending';
+  if (s.startsWith('place'))     return 'placed';
+  if (s.startsWith('hire'))      return 'hired';
+
+  return 'learning'; // safe default
+}
+
 function rowToStudent(row: string[]): Student {
   return {
     id: row[0] || '',
     name: row[1] || '',
     batch: row[2] || '',
     mentor_email: row[3] || '',
-    stage: (row[4] as StudentStage) || 'learning',
+    stage: normalizeStage(row[4]),
     risk_status: (row[5] as RiskStatus) || 'safe',
     risk_reasons: row[6] || '',
     last_activity_date: row[7] || '',
