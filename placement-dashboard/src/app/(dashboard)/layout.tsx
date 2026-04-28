@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, Kanban, ClipboardList, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -60,8 +61,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="w-64 bg-card border-r flex flex-col relative z-20">
         <div className="p-6 h-16 flex items-center">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
-              <span className="font-bold text-lg">P</span>
+            <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm flex-shrink-0">
+              <Image src="/assets/icon.webp" alt="Placement" width={32} height={32} className="object-cover w-full h-full" />
             </div>
             <h1 className="text-xl font-heading font-bold text-card-foreground">
               Placement

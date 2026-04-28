@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,8 +60,8 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md shadow-lg">
       <CardHeader className="space-y-4 text-center">
-        <div className="mx-auto w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center">
-          <span className="text-2xl font-bold text-white">P</span>
+        <div className="mx-auto">
+          <Image src="/assets/icon.webp" alt="Placement Dashboard" width={64} height={64} className="rounded-full object-cover" />
         </div>
         <div>
           <CardTitle className="text-2xl">Placement Dashboard</CardTitle>
