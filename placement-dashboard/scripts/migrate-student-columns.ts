@@ -1,20 +1,26 @@
 /**
- * Migration: Add job_focus, terminated, hired columns to the students sheet.
+ * Migration: Ensures the students sheet has all required columns in the correct order.
  *
- * Current layout (cols A–J):
- *   id | name | batch | mentor_email | stage | risk_status | risk_reasons | last_activity_date | created_at | updated_at
+ * Final layout (cols A–N):
+ *   A: id
+ *   B: name
+ *   C: batch
+ *   D: mentor_email
+ *   E: stage
+ *   F: risk_status
+ *   G: risk_reasons
+ *   H: last_activity_date
+ *   I: job_focus
+ *   J: terminated
+ *   K: hired
+ *   L: experience      ← right after hired
+ *   M: created_at
+ *   N: updated_at
  *
- * Target layout (cols A–M):
- *   id | name | batch | mentor_email | stage | risk_status | risk_reasons | last_activity_date | job_focus | terminated | hired | created_at | updated_at
+ * The script is IDEMPOTENT — safe to run multiple times.
  *
- * The script:
- *   1. Reads all current rows from the students sheet.
- *   2. Inserts 3 new columns (K, L, M) by shifting created_at / updated_at right.
- *   3. Writes the updated header row.
- *   4. Backfills every existing data row with defaults: job_focus='', terminated='false', hired='false'.
- *
- * Run once:
- *   npx ts-node --esm scripts/migrate-student-columns.ts
+ * Run:
+ *   npm run migrate-columns
  */
 
 import * as path from 'path';
@@ -30,12 +36,12 @@ import { google } from 'googleapis';
 const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID!;
 const SHEET = 'students';
 
-// New full header order
-const NEW_HEADERS = [
+const FINAL_HEADERS = [
   'id', 'name', 'batch', 'mentor_email', 'stage',
   'risk_status', 'risk_reasons', 'last_activity_date',
   'job_focus', 'terminated', 'hired',
-  'created_at', 'updated_at', 'experience',
+  'experience',
+  'created_at', 'updated_at',
 ];
 
 async function run() {
@@ -50,7 +56,6 @@ async function run() {
   });
   const sheets = google.sheets({ version: 'v4', auth });
 
-  // 1. Read all existing data (including header row)
   console.log(`Reading "${SHEET}" sheet...`);
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -60,53 +65,109 @@ async function run() {
   const rows: string[][] = (response.data.values || []) as string[][];
 
   if (rows.length === 0) {
-    console.log('Sheet is empty — writing headers only.');
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET}!A1`,
       valueInputOption: 'RAW',
-      requestBody: { values: [NEW_HEADERS] },
+      requestBody: { values: [FINAL_HEADERS] },
     });
-    console.log('✅  Headers written.');
+    console.log('✅  Empty sheet — headers written.');
     return;
   }
 
-  const headerRow = rows[0];
-  console.log(`Current headers: ${headerRow.join(', ')}`);
+  const currentHeaders = rows[0];
+  console.log(`Current headers (${currentHeaders.length}): ${currentHeaders.join(', ')}`);
 
-  // Guard: already migrated?
-  if (headerRow.includes('job_focus')) {
-    console.log('✅  Migration already applied — job_focus column exists. Nothing to do.');
+  // Check if already fully migrated (experience is at index 11, right after hired)
+  if (
+    currentHeaders[11] === 'experience' &&
+    currentHeaders[12] === 'created_at' &&
+    currentHeaders[13] === 'updated_at'
+  ) {
+    console.log('✅  All columns already in correct order. Nothing to do.');
     return;
   }
 
-  // 2. Rebuild every row with the new column layout.
-  //    Old indices: 0–7 stay, then we insert 3 new cols, then old 8 (created_at) and 9 (updated_at).
+  const hasJobFocus = currentHeaders.includes('job_focus');
+  const hasExperience = currentHeaders.includes('experience');
+  // Where is experience currently sitting (if present)?
+  const experienceIdx = currentHeaders.indexOf('experience');
+
+  console.log(`hasJobFocus=${hasJobFocus}, hasExperience=${hasExperience}, experienceIdx=${experienceIdx}`);
+
   const newRows: string[][] = rows.map((row, i) => {
-    if (i === 0) {
-      // Header row
-      return NEW_HEADERS;
+    if (i === 0) return FINAL_HEADERS;
+
+    if (!hasJobFocus) {
+      // Original 10-col sheet: id..last_activity_date, created_at, updated_at
+      return [
+        row[0] || '',   // id
+        row[1] || '',   // name
+        row[2] || '',   // batch
+        row[3] || '',   // mentor_email
+        row[4] || '',   // stage
+        row[5] || '',   // risk_status
+        row[6] || '',   // risk_reasons
+        row[7] || '',   // last_activity_date
+        '',             // job_focus    (new)
+        'false',        // terminated   (new)
+        'false',        // hired        (new)
+        '',             // experience   (new — after hired)
+        row[8] || '',   // created_at   (shifted to M)
+        row[9] || '',   // updated_at   (shifted to N)
+      ];
     }
-    // Data row — old layout: [0..7] + [8=created_at, 9=updated_at]
-    return [
-      row[0] || '',  // id
-      row[1] || '',  // name
-      row[2] || '',  // batch
-      row[3] || '',  // mentor_email
-      row[4] || '',  // stage
-      row[5] || '',  // risk_status
-      row[6] || '',  // risk_reasons
-      row[7] || '',  // last_activity_date
-      '',            // job_focus  (new — default empty)
-      'false',       // terminated (new — default false)
-      'false',       // hired      (new — default false)
-      row[8] || '',  // created_at  (shifted from col I → col L)
-      row[9] || '',  // updated_at  (shifted from col J → col M)
-    ];
+
+    if (hasJobFocus && hasExperience && experienceIdx === 13) {
+      // experience is currently at col N (after updated_at) — move it to col L (after hired)
+      // Current: id,name,batch,mentor_email,stage,risk_status,risk_reasons,last_activity_date,
+      //          job_focus,terminated,hired,created_at,updated_at,experience
+      // Indices:  0  1    2     3           4     5          6           7
+      //           8         9           10    11          12          13
+      return [
+        row[0] || '',   // id
+        row[1] || '',   // name
+        row[2] || '',   // batch
+        row[3] || '',   // mentor_email
+        row[4] || '',   // stage
+        row[5] || '',   // risk_status
+        row[6] || '',   // risk_reasons
+        row[7] || '',   // last_activity_date
+        row[8] || '',   // job_focus
+        row[9] || '',   // terminated
+        row[10] || '',  // hired
+        row[13] || '',  // experience  (moved from N → L)
+        row[11] || '',  // created_at  (shifted from L → M)
+        row[12] || '',  // updated_at  (shifted from M → N)
+      ];
+    }
+
+    if (hasJobFocus && !hasExperience) {
+      // 13-col sheet: job_focus added but experience missing
+      // Current: id..hired, created_at, updated_at (indices 0–12)
+      return [
+        row[0] || '',   // id
+        row[1] || '',   // name
+        row[2] || '',   // batch
+        row[3] || '',   // mentor_email
+        row[4] || '',   // stage
+        row[5] || '',   // risk_status
+        row[6] || '',   // risk_reasons
+        row[7] || '',   // last_activity_date
+        row[8] || '',   // job_focus
+        row[9] || '',   // terminated
+        row[10] || '',  // hired
+        '',             // experience   (new — inserted at L)
+        row[11] || '',  // created_at   (shifted to M)
+        row[12] || '',  // updated_at   (shifted to N)
+      ];
+    }
+
+    // Fallback: return as-is padded to 14 cols
+    return FINAL_HEADERS.map((_, idx) => row[idx] || '');
   });
 
-  // 3. Write everything back in one shot
-  console.log(`Migrating ${newRows.length - 1} student row(s)...`);
+  console.log(`Writing ${newRows.length - 1} row(s) with final layout...`);
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range: `${SHEET}!A1`,
@@ -115,8 +176,7 @@ async function run() {
   });
 
   console.log('✅  Migration complete!');
-  console.log(`   Headers are now: ${NEW_HEADERS.join(', ')}`);
-  console.log(`   ${newRows.length - 1} existing row(s) backfilled with job_focus='', terminated='false', hired='false'`);
+  console.log(`   Final headers: ${FINAL_HEADERS.join(', ')}`);
 }
 
 run().catch((err) => {

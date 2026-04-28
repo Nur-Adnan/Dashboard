@@ -6,7 +6,8 @@ const HEADERS = [
   'id', 'name', 'batch', 'mentor_email', 'stage',
   'risk_status', 'risk_reasons', 'last_activity_date',
   'job_focus', 'terminated', 'hired',
-  'created_at', 'updated_at', 'experience',
+  'experience',
+  'created_at', 'updated_at',
 ];
 
 function rowToStudent(row: string[]): Student {
@@ -22,9 +23,9 @@ function rowToStudent(row: string[]): Student {
     job_focus: (row[8] as JobFocus) || '',
     terminated: row[9] === 'true',
     hired: row[10] === 'true',
-    created_at: row[11] || '',
-    updated_at: row[12] || '',
-    experience: (row[13] as ExperienceLevel) || '',
+    experience: (row[11] as ExperienceLevel) || '',
+    created_at: row[12] || '',
+    updated_at: row[13] || '',
   };
 }
 
@@ -41,9 +42,9 @@ function studentToRow(student: Partial<Student>): unknown[] {
     student.job_focus || '',
     String(student.terminated ?? false),
     String(student.hired ?? false),
+    student.experience || '',
     student.created_at || '',
     student.updated_at || '',
-    student.experience || '',
   ];
 }
 
