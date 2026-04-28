@@ -10,7 +10,8 @@
     "setup-sheets": "ts-node --project tsconfig.json scripts/setup-sheets.ts",
     "migrate-columns": "ts-node --project tsconfig.json scripts/migrate-student-columns.ts",
     "migrate-progress-logs": "ts-node --project tsconfig.json scripts/migrate-progress-logs.ts",
-    "migrate-normalize-stages": "ts-node --project tsconfig.json scripts/migrate-normalize-stages.ts"
+    "migrate-normalize-stages": "ts-node --project tsconfig.json scripts/migrate-normalize-stages.ts",
+    "migrate-attendance-logs": "ts-node --project tsconfig.json scripts/migrate-attendance-logs.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
