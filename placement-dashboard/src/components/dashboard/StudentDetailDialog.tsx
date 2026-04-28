@@ -1,16 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { Student, StudentStage, JobFocus, ExperienceLevel } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ProgressLogsTab } from './ProgressLogsTab';
 
 const getStageBadgeProps = (stage: string): { variant: "default" | "secondary" | "destructive" | "outline", className?: string } => {
   switch (stage) {
@@ -107,208 +105,122 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
 
   return (
     <Dialog open={!!student} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="shrink-0">
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {student.name}
-            {student.hired && (
-              <Badge className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">
-                Hired
-              </Badge>
-            )}
-            {student.terminated && (
-              <Badge variant="destructive" className="text-xs opacity-80">
-                Terminated
-              </Badge>
-            )}
+            {student.hired && <Badge className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">Hired</Badge>}
+            {student.terminated && <Badge variant="destructive" className="text-xs opacity-80">Terminated</Badge>}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col min-h-0">
-          <TabsList className="shrink-0 w-full justify-start rounded-none border-b bg-transparent px-0 h-auto pb-0">
-            <TabsTrigger
-              value="overview"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:bg-transparent px-4 pb-2 text-sm"
-            >
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="progress"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:bg-transparent px-4 pb-2 text-sm"
-            >
-              Progress Logs
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="flex-1 overflow-y-auto mt-0 pt-4 space-y-4">
-            {/* Core info */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Batch</p>
-                <p>{student.batch}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Mentor</p>
-                <p className="text-sm">{student.mentor_email}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Stage</p>
-                <Badge className="mt-1" {...getStageBadgeProps(student.stage)}>
-                  {student.stage.replace('_', ' ')}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Risk Status</p>
-                <Badge variant={student.risk_status === 'at_risk' ? 'destructive' : 'outline'} className="mt-1">
-                  {student.risk_status === 'at_risk' ? 'At Risk' : 'Safe'}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Job Focus</p>
-                {student.job_focus ? (
-                  <Badge variant="outline" className="mt-1 capitalize">
-                    {student.job_focus}
-                  </Badge>
-                ) : (
-                  <p className="text-sm text-muted-foreground mt-1">Not set</p>
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Experience</p>
-                {student.experience === 'fresher' && (
-                  <Badge variant="outline" className="mt-1 text-sky-600 border-sky-300 bg-sky-50">Fresher</Badge>
-                )}
-                {student.experience === 'experienced' && (
-                  <Badge variant="outline" className="mt-1 text-violet-600 border-violet-300 bg-violet-50">Experienced</Badge>
-                )}
-                {!student.experience && (
-                  <p className="text-sm text-muted-foreground mt-1">Not set</p>
-                )}
-              </div>
+        <div className="space-y-4 overflow-y-auto max-h-[70vh] pr-1">
+          {/* Info grid */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Batch</p>
+              <p className="text-sm font-medium">{student.batch}</p>
             </div>
-
-            {/* Risk reasons */}
-            {student.risk_reasons && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Mentor</p>
+              <p className="text-sm truncate">{student.mentor_email}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Stage</p>
+              <Badge {...getStageBadgeProps(student.stage)} className="capitalize">
+                {student.stage.replace('_', ' ')}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Risk</p>
+              <Badge variant={student.risk_status === 'at_risk' ? 'destructive' : 'outline'}>
+                {student.risk_status === 'at_risk' ? 'At Risk' : 'Safe'}
+              </Badge>
+            </div>
+            {student.job_focus && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Risk Reasons</p>
-                <div className="flex flex-wrap gap-1">
-                  {student.risk_reasons.split(',').map((reason, i) => (
-                    <Badge key={i} variant="destructive" className="text-xs">
-                      {reason.trim()}
-                    </Badge>
-                  ))}
-                </div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Job Focus</p>
+                <Badge variant="outline" className="capitalize">{student.job_focus}</Badge>
               </div>
             )}
-
-            {/* Timestamps */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+            {student.experience && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Created</p>
-                <p className="text-sm">{format(new Date(student.created_at), 'PPpp')}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Last Updated</p>
-                <p className="text-sm">{format(new Date(student.updated_at), 'PPpp')}</p>
-              </div>
-            </div>
-
-            {/* Actions — hidden for terminated students */}
-            {!student.terminated && (
-              <div className="space-y-3 pt-4 border-t border-border/50">
-                {/* Stage update */}
-                <div className="flex items-center gap-2">
-                  <Select value={newStage} onValueChange={(v) => setNewStage(v as StudentStage)}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Change Stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="learning">Learning</SelectItem>
-                      <SelectItem value="applying">Applying</SelectItem>
-                      <SelectItem value="interviewing">Interviewing</SelectItem>
-                      <SelectItem value="offer_pending">Offer Pending</SelectItem>
-                      <SelectItem value="placed">Placed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleUpdateStage}
-                    disabled={isUpdatingStage || newStage === student.stage}
-                    size="sm"
-                  >
-                    {isUpdatingStage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Stage
-                  </Button>
-                </div>
-
-                {/* Job focus update */}
-                <div className="flex items-center gap-2">
-                  <Select value={newJobFocus || 'none'} onValueChange={(v) => setNewJobFocus(v === 'none' ? '' : v as JobFocus)}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Set Job Focus" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No Preference</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                      <SelectItem value="onsite">Onsite</SelectItem>
-                      <SelectItem value="hybrid">Hybrid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleUpdateJobFocus}
-                    disabled={isUpdatingJobFocus || newJobFocus === student.job_focus}
-                    size="sm"
-                    variant="outline"
-                  >
-                    {isUpdatingJobFocus && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Focus
-                  </Button>
-                </div>
-
-                {/* Experience update */}
-                <div className="flex items-center gap-2">
-                  <Select value={newExperience || undefined} onValueChange={(v) => setNewExperience(v as ExperienceLevel)}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Set Experience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fresher">Fresher</SelectItem>
-                      <SelectItem value="experienced">Experienced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleUpdateExperience}
-                    disabled={isUpdatingExperience || newExperience === student.experience}
-                    size="sm"
-                    variant="outline"
-                  >
-                    {isUpdatingExperience && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save
-                  </Button>
-                </div>
-
-                {/* Mark as hired */}
-                {!student.hired && (
-                  <div className="pt-1">
-                    <Button
-                      onClick={handleMarkHired}
-                      disabled={isMarkingHired}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {isMarkingHired && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Mark as Hired
-                    </Button>
-                  </div>
-                )}
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Experience</p>
+                <Badge variant="outline" className={student.experience === 'fresher' ? 'text-sky-600 border-sky-300 bg-sky-50' : 'text-violet-600 border-violet-300 bg-violet-50'}>
+                  {student.experience === 'fresher' ? 'Fresher' : 'Experienced'}
+                </Badge>
               </div>
             )}
-          </TabsContent>
+          </div>
 
-          {/* Progress Logs Tab */}
-          <TabsContent value="progress" className="flex-1 overflow-y-auto mt-0 pt-4">
-            <ProgressLogsTab student={student} />
-          </TabsContent>
-        </Tabs>
+          {student.risk_reasons && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Risk Reasons</p>
+              <div className="flex flex-wrap gap-1">
+                {student.risk_reasons.split(',').map((r, i) => (
+                  <Badge key={i} variant="destructive" className="text-xs">{r.trim()}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Actions */}
+          {!student.terminated && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Select value={newStage} onValueChange={v => setNewStage(v as StudentStage)}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Change Stage" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="learning">Learning</SelectItem>
+                    <SelectItem value="applying">Applying</SelectItem>
+                    <SelectItem value="interviewing">Interviewing</SelectItem>
+                    <SelectItem value="offer_pending">Offer Pending</SelectItem>
+                    <SelectItem value="placed">Placed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleUpdateStage} disabled={isUpdatingStage || newStage === student.stage} size="sm" className="shrink-0">
+                  {isUpdatingStage && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />} Save
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Select value={newJobFocus || 'none'} onValueChange={v => setNewJobFocus(v === 'none' ? '' : v as JobFocus)}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Set Job Focus" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Preference</SelectItem>
+                    <SelectItem value="remote">Remote</SelectItem>
+                    <SelectItem value="onsite">Onsite</SelectItem>
+                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleUpdateJobFocus} disabled={isUpdatingJobFocus || newJobFocus === student.job_focus} size="sm" variant="outline" className="shrink-0">
+                  {isUpdatingJobFocus && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />} Save
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Select value={newExperience || undefined} onValueChange={v => setNewExperience(v as ExperienceLevel)}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Set Experience" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fresher">Fresher</SelectItem>
+                    <SelectItem value="experienced">Experienced</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleUpdateExperience} disabled={isUpdatingExperience || newExperience === student.experience} size="sm" variant="outline" className="shrink-0">
+                  {isUpdatingExperience && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />} Save
+                </Button>
+              </div>
+
+              {!student.hired && (
+                <Button onClick={handleMarkHired} disabled={isMarkingHired} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                  {isMarkingHired && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Mark as Hired
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
