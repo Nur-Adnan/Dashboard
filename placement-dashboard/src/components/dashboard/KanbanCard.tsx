@@ -43,18 +43,18 @@ export function KanbanCard({ student, isOverlay = false }: KanbanCardProps) {
       ref={setNodeRef}
       style={style}
       {...attributes}
+      {...listeners}
       className={cn(
         'group flex items-start gap-2.5 rounded-lg border border-border/60 bg-background p-3',
         'shadow-sm hover:shadow-md transition-all duration-150 select-none',
         isDragging && !isOverlay && 'opacity-40 shadow-none',
         isOverlay && 'shadow-xl rotate-1 scale-105 cursor-grabbing',
-        !isOverlay && 'cursor-grab',
+        !isOverlay && 'cursor-grab active:cursor-grabbing',
       )}
     >
       {/* Drag handle */}
       <div
-        {...listeners}
-        className="mt-0.5 shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-grab"
+        className="mt-0.5 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors"
       >
         <GripVertical className="w-3.5 h-3.5" />
       </div>

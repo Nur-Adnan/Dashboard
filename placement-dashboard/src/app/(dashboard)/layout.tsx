@@ -71,29 +71,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex bg-muted/30">
 
       {/* ── Sidebar ─────────────────────────────────────────── */}
-      <aside className="w-60 shrink-0 bg-card border-r border-border flex flex-col h-screen sticky top-0 z-20">
+      <aside className="w-72 shrink-0 bg-card border-r border-border flex flex-col h-screen sticky top-0 z-20">
 
         {/* Brand */}
-        <div className="h-16 px-5 flex items-center gap-3 border-b border-border shrink-0">
-          <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm shrink-0">
-            <Image src="/assets/icon.webp" alt="Placement" width={32} height={32} className="object-cover w-full h-full" />
+        <div className="h-20 px-6 flex items-center gap-4 border-b border-border shrink-0">
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shrink-0">
+            <Image src="/assets/icon.webp" alt="Placement" width={40} height={40} className="object-cover w-full h-full" />
           </div>
-          <span className="font-bold text-base tracking-tight text-foreground">Placement</span>
+          <span className="font-bold text-xl tracking-tight text-foreground">Placement</span>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
-          <p className="px-3 mb-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Menu</p>
+        <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-0.5">
+          <p className="px-2 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Menu</p>
 
           {/* Overview */}
           <Link
             href="/"
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-all duration-150',
               pathname === '/' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
-            <LayoutDashboard className="w-4 h-4 shrink-0" />
+            <LayoutDashboard className="w-5 h-5 shrink-0" />
             Overview
           </Link>
 
@@ -102,16 +102,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <CollapsibleTrigger asChild>
               <button
                 className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
+                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-all duration-150 group',
                   studentsActive
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >
-                <Users className="w-4 h-4 shrink-0" />
+                <Users className="w-5 h-5 shrink-0" />
                 <span className="flex-1 text-left">Students</span>
                 <ChevronDown className={cn(
-                  'w-3.5 h-3.5 shrink-0 text-muted-foreground/60 transition-transform duration-200',
+                  'w-4 h-4 shrink-0 text-muted-foreground/60 transition-transform duration-200',
                   studentsOpen ? 'rotate-180' : '',
                 )} />
               </button>
@@ -119,18 +119,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:slide-in-from-top-1">
               {/* Left accent line + sub-items */}
-              <div className="ml-[22px] mt-1 mb-0.5 pl-3 border-l-2 border-border/60 space-y-0.5">
+              <div className="ml-5 mt-0.5 mb-0.5 pl-3 border-l-2 border-border/60 space-y-0.5">
 
                 <Link
                   href="/students"
                   className={cn(
-                    'flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150',
+                    'flex items-center gap-3 px-3 py-1.5 rounded-md text-base font-medium transition-all duration-150',
                     pathname === '/students'
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                   )}
                 >
-                  <Users className="w-3 h-3 shrink-0" />
+                  <Users className="w-4 h-4 shrink-0" />
                   All Students
                 </Link>
 
@@ -141,13 +141,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150',
+                        'flex items-center gap-3 px-3 py-1.5 rounded-md text-base font-medium transition-all duration-150',
                         isActive
                           ? 'bg-primary/10 text-primary'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                       )}
                     >
-                      <item.icon className="w-3 h-3 shrink-0" />
+                      <item.icon className="w-4 h-4 shrink-0" />
                       {item.label}
                     </Link>
                   );
@@ -160,11 +160,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link
             href="/placement"
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-all duration-150',
               pathname.startsWith('/placement') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
-            <Kanban className="w-4 h-4 shrink-0" />
+            <Kanban className="w-5 h-5 shrink-0" />
             Placement
           </Link>
 
@@ -172,37 +172,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link
             href="/updates"
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-all duration-150',
               pathname.startsWith('/updates') ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
-            <ClipboardList className="w-4 h-4 shrink-0" />
+            <ClipboardList className="w-5 h-5 shrink-0" />
             Daily Updates
           </Link>
         </nav>
 
         {/* User footer */}
         {user && (
-          <div className="shrink-0 p-3 border-t border-border space-y-3">
+          <div className="shrink-0 p-4 border-t border-border space-y-3">
             <div className="flex items-center gap-3 px-1">
-              <Avatar className="w-8 h-8 shrink-0 border shadow-sm">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+              <Avatar className="w-10 h-10 shrink-0 border shadow-sm">
+                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate leading-tight">{user.name}</p>
-                <Badge variant={getRoleBadgeVariant(user.role)} className="mt-0.5 text-[10px] uppercase tracking-wider py-0 px-1.5 shadow-none h-4">
+                <p className="text-sm font-semibold text-foreground truncate leading-tight">{user.name}</p>
+                <Badge variant={getRoleBadgeVariant(user.role)} className="mt-1 text-xs uppercase tracking-wider py-0 px-2 shadow-none h-5">
                   {user.role}
                 </Badge>
               </div>
             </div>
             <Button
               variant="ghost" size="sm"
-              className="w-full justify-start text-muted-foreground hover:text-foreground h-8 px-3 text-xs"
+              className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3 text-sm"
               onClick={handleLogout}
             >
-              <LogOut className="w-3.5 h-3.5 mr-2" />
+              <LogOut className="w-4 h-4 mr-2" />
               Sign Out
             </Button>
           </div>
@@ -211,8 +211,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ── Main ────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 shrink-0 bg-background/95 backdrop-blur border-b border-border flex items-center justify-between px-8 sticky top-0 z-10">
-          <h2 className="text-base font-semibold text-foreground">{pageLabel}</h2>
+        <header className="h-20 shrink-0 bg-background/95 backdrop-blur border-b border-border flex items-center justify-between px-8 sticky top-0 z-10">
+          <h2 className="text-lg font-semibold text-foreground">{pageLabel}</h2>
           <p className="text-sm text-muted-foreground hidden sm:block">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>

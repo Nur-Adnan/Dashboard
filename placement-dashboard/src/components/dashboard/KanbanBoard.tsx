@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import {
   DndContext, DragEndEvent, DragOverEvent, DragStartEvent,
-  DragOverlay, closestCorners, PointerSensor,
+  DragOverlay, closestCorners, PointerSensor, MouseSensor, TouchSensor,
   useSensor, useSensors, useDroppable,
 } from '@dnd-kit/core';
 import {
@@ -129,7 +129,9 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
   });
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   // Find which stage a student currently belongs to

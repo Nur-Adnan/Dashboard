@@ -111,9 +111,9 @@ export function StudentTable({ filters }: StudentTableProps) {
                   className={cn(
                     'border-b border-border/40 transition-colors',
                     student.terminated
-                      ? 'bg-red-50/60 hover:bg-red-50'
+                      ? 'bg-red-100 hover:bg-red-200 border-l-4 border-l-red-500'
                       : student.hired
-                        ? 'bg-green-50/60 hover:bg-green-50'
+                        ? 'bg-green-100 hover:bg-green-200 border-l-4 border-l-green-600'
                         : 'hover:bg-muted/30',
                   )}
                 >
@@ -202,12 +202,12 @@ export function StudentTable({ filters }: StudentTableProps) {
                   {/* Status */}
                   <TableCell className="py-3">
                     {student.hired && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border bg-green-50 text-green-700 border-green-200">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-600 text-white border border-green-700">
                         ✓ Hired
                       </span>
                     )}
                     {student.terminated && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border bg-red-50 text-red-600 border-red-200">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-600 text-white border border-red-700">
                         ✕ Terminated
                       </span>
                     )}
